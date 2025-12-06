@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>for u</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js" rel="preload">
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #ffe4f0, #ffd9e8, #ffe9f4);
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .card {
+        background: #fff7fc;
+        padding: 32px;
+        border-radius: 25px;
+        width: 90%;
+        max-width: 420px;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(255, 150, 185, 0.3);
+        animation: fadeIn .8s ease;
+        border: 2px solid #ffd6e8;
+    }
+
+    @keyframes fadeIn {
+        from {opacity: 0; transform: scale(.8);}
+        to {opacity: 1; transform: scale(1);}
+    }
+
+    button {
+        background: #ff9ac9;
+        color: white;
+        padding: 13px 20px;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: .25s;
+        font-weight: 600;
+    }
+
+    button:hover {
+        background: #ff7eb8;
+        transform: scale(1.06);
+        box-shadow: 0 6px 15px rgba(255, 105, 172, 0.3);
+    }
+
+    input {
+        width: 80%;
+        padding: 11px;
+        border-radius: 12px;
+        border: 2px solid #ffadd5;
+        outline: none;
+        margin-top: 15px;
+        text-align: center;
+        font-size: 16px;
+        background: #fff0f7;
+        transition: .2s;
+    }
+
+    input:focus {
+        border-color: #ff7eb8;
+        background: #ffeafa;
+        box-shadow: 0 0 8px rgba(255, 120, 190, 0.4);
+    }
+
+    #cake-container {
+        width: 100%;
+        height: 260px;
+        margin-top: 20px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    h2 {
+        color: #ff77b5;
+        font-weight: 700;
+    }
+
+    p {
+        color: #ff8abb;
+        font-size: 15px;
+        font-weight: 500;
+        min-height: 70px;
+    }
+    
+    .balloon {
+        position: fixed;
+        bottom: -120px;
+        font-size: 40px;
+        animation: fly 4s linear forwards;
+        pointer-events: none;
+    }
+
+    @keyframes fly {
+        from { transform: translateY(0); opacity: 1; }
+        to   { transform: translateY(-110vh); opacity: 0; }
+    }
+</style>
+</head>
+<body>
+
+<div id="step1" class="card">
+    <h2>🌸 Selamat Datang 🌸</h2>
+    <p>Klik tombol di bawah untuk memulai.</p>
+    <button onclick="goToStep2()">Mulai</button>
+</div>
+
+<div id="step2" class="card hidden">
+    <h2>✨ Masukkan Nama Kamu ✨</h2>
+    <input type="text" id="namaInput" placeholder="Nama kamu...">
+    <br><br>
+    <button onclick="showGreeting()">Lanjut</button>
+</div>
+
+<div id="greetingCard" class="card hidden">
+    <h2 id="greetName">🎂 Selamat Ulang Tahun!</h2>
+    <p id="greetText"></p>
+
+    <div id="cake-container"></div>
+
+    <br>
+    <button id="blowBtn" onclick="toggleCandle()">Tiup Lilin 🎤</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+
+function goToStep2() {
+    document.getElementById("step1").classList.add("hidden");
+    document.getElementById("step2").classList.remove("hidden");
+}
+
+function showGreeting() {
+    const nama = document.getElementById("namaInput").value.trim();
+    if (nama === "") { alert("Isi nama dulu yaaa ✨"); return; }
+
+    document.getElementById("step2").classList.add("hidden");
+    document.getElementById("greetingCard").classList.remove("hidden");
+
+    document.getElementById("greetName").innerHTML = `🌸 Selamat Ulang Tahun, ${nama}! 🌸`;
+
+    let text = 
+`Semoga harimu penuh lembutnya kebahagiaan, hangatnya cinta,
+dan manisnya kenangan yang tak terlupakan.
+Kamu layak mendapatkan yang terbaik selalu.
+Happy Birthday, ${nama}! 🎀🎂💗`;
+
+    typeWriter(text, "greetText", 22);
+    startConfetti();
+    loadCake3D();
+}
+function typeWriter(text, elementId, speed) {
+    let i = 0;
+    const el = document.getElementById(elementId);
+    el.innerHTML = "";
+    function typing() {
+        if (i < text.length) {
+            el.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typing, speed);
+        }
+    }
+    typing();
+}
+function startConfetti() {
+    let end = Date.now() + 2000;
+    (function frame() {
+        confetti({ particleCount: 8, spread: 70, origin: { y: 0.3 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+}
+let scene, camera, renderer, candleFlame;
+let candleOn = true;
+
+function loadCake3D() {
+    const container = document.getElementById("cake-container");
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / 260, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(container.clientWidth, 260);
+    container.appendChild(renderer.domElement);
+
+    const cake = new THREE.Mesh(
+        new THREE.CylinderGeometry(1, 1, 0.6, 32),
+        new THREE.MeshBasicMaterial({ color: 0xffb6d9 })
+    );
+    scene.add(cake);
+
+    const candle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.10, 0.10, 0.9, 32),
+        new THREE.MeshBasicMaterial({ color: 0xff7eb8 })
+    );
+    candle.position.y = 0.9;
+    scene.add(candle);
+
+    candleFlame = new THREE.Mesh(
+        new THREE.SphereGeometry(0.15, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xffe38c })
+    );
+    candleFlame.position.y = 1.35;
+    scene.add(candleFlame);
+
+    camera.position.z = 3;
+    animate();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (candleOn && candleFlame) {
+        candleFlame.position.y += Math.sin(Date.now() * 0.01) * 0.0005;
+    }
+
+    renderer.render(scene, camera);
+}
+function spawnBalloon() {
+    const balloon = document.createElement("div");
+    balloon.className = "balloon";
+
+    const emojis = ["🎈","💗","🎀","🎉","💖"];
+    balloon.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+    balloon.style.left = Math.random() * 90 + "vw";
+
+    document.body.appendChild(balloon);
+    setTimeout(() => balloon.remove(), 4000);
+}
+function toggleCandle() {
+    if (candleOn) {
+        candleFlame.visible = false;
+        candleOn = false;
+        document.getElementById("blowBtn").innerHTML = "Nyalakan Lilin ✨";
+
+        for (let i = 0; i < 12; i++) {
+            setTimeout(spawnBalloon, i * 200);
+        }
+
+    } else {
+        candleFlame.visible = true;
+        candleOn = true;
+        document.getElementById("blowBtn").innerHTML = "Tiup Lilin 🎤";
+    }
+}
+</script>
+
+</body>
+</html>
